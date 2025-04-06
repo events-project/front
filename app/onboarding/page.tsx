@@ -1,7 +1,9 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect } from "react";
-import { useUser, useOrganizationList, useSession } from "@clerk/nextjs";
+import { useUser, useOrganizationList } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Building2, Sparkles, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +27,7 @@ const generateUniqueSlug = (name: string) => {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { createOrganization, setActive, userMemberships, userInvitations } =
     useOrganizationList();
 
@@ -33,7 +35,6 @@ export default function OnboardingPage() {
   const [slug, setSlug] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { session } = useSession();
 
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,35 +42,56 @@ export default function OnboardingPage() {
     setError("");
 
     try {
+      // 1. Create the organization
       const org = await createOrganization?.({
         name,
         slug: slug || generateUniqueSlug(name),
       });
 
       if (org) {
+        // 2. Set it as active
         await setActive?.({ organization: org });
 
-        // 🔄 Call your API route to set onboardingComplete = true
-        await fetch("/api/set-onboarding-complete", { method: "POST" });
+        // 3. Update user metadata directly from the client
+        if (user) {
+          try {
+            console.log("Updating user metadata...");
 
-        // 🔁 Force Clerk to reload session claims
-        document.cookie = "__clerk_refresh=true; path=/";
+            // Use setMetadata instead of update with publicMetadata
+            await user.update({
+              unsafeMetadata: {
+                onboardingComplete: true,
+              },
+            });
 
-        // Wait briefly and hard-redirect to force reload session
-        setTimeout(() => {
-          window.location.href = `/organization/${org.id}`;
-        }, 300);
+            console.log("User metadata updated successfully");
+          } catch (metadataError) {
+            console.error("Failed to update user metadata:", metadataError);
+          }
+        }
+
+        // 4. Force a full page reload to refresh the session
+        console.log("Redirecting to organization page...");
+        window.location.href = `/organization/${org.id}`;
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err?.errors?.[0]?.message || "Something went wrong");
+      console.error("Error:", err);
+      setError(
+        err?.message || err?.errors?.[0]?.message || "Something went wrong"
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!isUserLoaded || !user) return;
+
+    // Check if user already has onboardingComplete set to true
+    const onboardingComplete =
+      user.publicMetadata?.onboardingComplete ||
+      (user.unsafeMetadata as any)?.onboardingComplete;
+    console.log("Current onboarding status:", onboardingComplete);
 
     const handleInvitation = async () => {
       if (userMemberships?.data?.length) {
@@ -97,7 +119,7 @@ export default function OnboardingPage() {
     };
 
     handleInvitation();
-  }, [user, userMemberships, userInvitations, setActive, router]);
+  }, [user, isUserLoaded, userMemberships, userInvitations, setActive, router]);
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
