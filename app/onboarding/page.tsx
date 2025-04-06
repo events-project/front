@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion } from "framer-motion";
+import { useSession } from "@clerk/nextjs";
 
 const slugify = (text: string) =>
   text
@@ -35,6 +36,7 @@ export default function OnboardingPage() {
   const [slug, setSlug] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const { session } = useSession();
 
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,37 +44,27 @@ export default function OnboardingPage() {
     setError("");
 
     try {
-      // 1. Create the organization
       const org = await createOrganization?.({
         name,
         slug: slug || generateUniqueSlug(name),
       });
-
       if (org) {
-        // 2. Set it as active
         await setActive?.({ organization: org });
 
-        // 3. Update user metadata directly from the client
-        if (user) {
-          try {
-            console.log("Updating user metadata...");
+        // Call API to update metadata AND refresh session
+        await fetch("/api/set-onboarding-complete", { method: "POST" })
+          .then((res) => res.json())
+          .then((data) =>
+            console.log("🔁 /api/set-onboarding-complete response:", data)
+          );
 
-            // Use setMetadata instead of update with publicMetadata
-            await user.update({
-              unsafeMetadata: {
-                onboardingComplete: true,
-              },
-            });
+        // 🔁 Force Clerk to refresh the session
+        document.cookie = "__clerk_refresh=true; path=/";
 
-            console.log("User metadata updated successfully");
-          } catch (metadataError) {
-            console.error("Failed to update user metadata:", metadataError);
-          }
-        }
-
-        // 4. Force a full page reload to refresh the session
-        console.log("Redirecting to organization page...");
-        window.location.href = `/organization/${org.id}`;
+        // Give Clerk time to refresh session, then redirect
+        setTimeout(() => {
+          router.push(`/organization/${org.id}`);
+        }, 500);
       }
     } catch (err: any) {
       console.error("Error:", err);

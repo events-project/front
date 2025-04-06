@@ -27,7 +27,7 @@ export default function OrganizationPage() {
       }
     } else {
       // Redirect to the onboarding page if onboarding is not complete
-      router.push("/onboarding");
+      // router.push("/onboarding");
     }
   }, [user, isLoaded, userMemberships, router, orgIdFromUrl]);
 
