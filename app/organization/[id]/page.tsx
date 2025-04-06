@@ -1,88 +1,275 @@
 "use client";
 
-import { useOrganizationList, useUser } from "@clerk/nextjs";
-import { useRouter, useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Users,
+  Calendar,
+  TrendingUp,
+  Award,
+  BarChart3,
+  GraduationCap,
+  ArrowUpRight,
+  GripHorizontal,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { cn } from "@/lib/utils";
+
+// Mock data - Replace with real data from your API
+const mockData = {
+  enrollments: 1234,
+  activeUsers: 892,
+  completionRate: 76,
+  totalEvents: 48,
+  revenueGrowth: 23,
+  chartData: [
+    { name: "Jan", value: 400 },
+    { name: "Feb", value: 600 },
+    { name: "Mar", value: 550 },
+    { name: "Apr", value: 800 },
+    { name: "May", value: 950 },
+    { name: "Jun", value: 1100 },
+  ],
+};
+
+interface DashboardWidgetProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  description?: string;
+  chart?: boolean;
+  className?: string;
+  isDragging?: boolean;
+}
+
+const DashboardWidget = ({
+  title,
+  value,
+  icon,
+  description,
+  chart,
+  className,
+  isDragging,
+}: DashboardWidgetProps) => {
+  return (
+    <Card
+      className={cn(
+        "relative group transition-all duration-200 hover:shadow-lg",
+        isDragging ? "shadow-2xl rotate-3" : "",
+        className
+      )}
+    >
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          {icon}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {description && (
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        )}
+        {chart && (
+          <div className="h-32 mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={mockData.chartData}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="hsl(var(--chart-1))"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="hsl(var(--chart-1))"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                <XAxis
+                  dataKey="name"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="hsl(var(--chart-1))"
+                  fillOpacity={1}
+                  fill="url(#colorValue)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </CardContent>
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <GripHorizontal className="w-4 h-4 text-muted-foreground cursor-move" />
+      </div>
+    </Card>
+  );
+};
+
+interface Widget {
+  id: string;
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  description?: string;
+  chart?: boolean;
+  size: "small" | "large";
+}
 
 export default function OrganizationPage() {
-  const router = useRouter();
-  const params = useParams();
-  const orgIdFromUrl = params?.id; // get the dynamic organization id from the URL, if any
-  const { user } = useUser();
-  const { userMemberships, isLoaded, createOrganization, setActive } =
-    useOrganizationList();
+  const [widgets, setWidgets] = useState<Widget[]>([
+    {
+      id: "enrollments",
+      title: "Total Enrollments",
+      value: mockData.enrollments,
+      icon: <Users className="w-4 h-4" />,
+      description: "+12% from last month",
+      size: "small",
+    },
+    {
+      id: "active-users",
+      title: "Active Users",
+      value: mockData.activeUsers,
+      icon: <GraduationCap className="w-4 h-4" />,
+      description: "Currently active learners",
+      size: "small",
+    },
+    {
+      id: "completion",
+      title: "Completion Rate",
+      value: `${mockData.completionRate}%`,
+      icon: <Award className="w-4 h-4" />,
+      description: "Average course completion",
+      size: "small",
+    },
+    {
+      id: "events",
+      title: "Total Events",
+      value: mockData.totalEvents,
+      icon: <Calendar className="w-4 h-4" />,
+      description: "Across all courses",
+      size: "small",
+    },
+    {
+      id: "growth",
+      title: "Revenue Growth",
+      value: `${mockData.revenueGrowth}%`,
+      icon: <TrendingUp className="w-4 h-4" />,
+      description: "Year over year",
+      size: "small",
+    },
+    {
+      id: "enrollment-trend",
+      title: "Enrollment Trend",
+      value: "Monthly Overview",
+      icon: <BarChart3 className="w-4 h-4" />,
+      chart: true,
+      size: "large",
+    },
+  ]);
 
-  useEffect(() => {
-    if (!user || !isLoaded) return;
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
-    // Check if onboarding is complete
-    if (user.publicMetadata?.onboardingComplete) {
-      // If there is no orgId in the URL, we check if the user is a member of any org
-      if (!orgIdFromUrl) {
-        const currentOrg = userMemberships.data.find((m) => m.role !== null);
-        if (currentOrg) {
-          // Redirect to the organization page if a membership exists
-          router.push(`/organization/${currentOrg.organization.id}`);
-        }
-      }
-    } else {
-      // Redirect to the onboarding page if onboarding is not complete
-      // router.push("/onboarding");
-    }
-  }, [user, isLoaded, userMemberships, router, orgIdFromUrl]);
-
-  const handleJoin = async (orgId: string) => {
-    if (!setActive) return;
-    await setActive({ organization: orgId });
-    // Redirect to the organization's page after joining
-    router.push(`/organization/${orgId}`);
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
+    setDraggingId(id);
+    e.dataTransfer.setData("text/plain", id);
   };
 
-  const handleCreate = async () => {
-    if (!createOrganization || !setActive) return;
-    const org = await createOrganization({ name: "My New Org" });
-    await setActive({ organization: org.id });
-    // Redirect to the newly created organization's page
-    router.push(`/organization/${org.id}`);
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetId: string) => {
+    e.preventDefault();
+    const sourceId = e.dataTransfer.getData("text/plain");
+
+    if (sourceId === targetId) return;
+
+    const newWidgets = [...widgets];
+    const sourceIndex = newWidgets.findIndex((w) => w.id === sourceId);
+    const targetIndex = newWidgets.findIndex((w) => w.id === targetId);
+
+    const [movedWidget] = newWidgets.splice(sourceIndex, 1);
+    newWidgets.splice(targetIndex, 0, movedWidget);
+
+    setWidgets(newWidgets);
+    setDraggingId(null);
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-white text-zinc-800">
-      <div className="bg-white border border-zinc-200 shadow-md rounded-xl p-8 w-full max-w-lg">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Choose or Create Your Organization
-        </h1>
-
-        {isLoaded && userMemberships?.data.length > 0 && (
-          <div className="space-y-3 mb-6">
-            <p className="text-sm text-zinc-600">You have been invited to:</p>
-            {userMemberships.data.map((org) => (
-              <button
-                key={org.organization.id}
-                className="block w-full border px-4 py-2 rounded hover:bg-zinc-100 text-left"
-                onClick={() => handleJoin(org.organization.id)}
-              >
-                <span className="font-semibold">{org.organization.name}</span> —
-                Role: {org.role}
-              </button>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95 p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
+              Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Monitor your organization's performance and growth
+            </p>
           </div>
-        )}
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              Last updated: {new Date().toLocaleDateString()}
+            </div>
+            <div className="h-8 w-px bg-border" />
+            <button className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+              View Reports
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
-        <button
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-semibold mb-3"
-          onClick={handleCreate}
+        <motion.div
+          layout
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         >
-          ➕ Create a new organization
-        </button>
-
-        <button
-          className="w-full border border-zinc-300 py-3 rounded-md text-zinc-700 hover:bg-zinc-100"
-          onClick={() => router.push("/")}
-        >
-          I'll decide later
-        </button>
+          {widgets.map((widget) => (
+            <motion.div
+              key={widget.id}
+              layoutId={widget.id}
+              draggable
+              // onDragStart={(e) => handleDragStart(e, widget.id)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, widget.id)}
+              className={cn(
+                widget.size === "large" ? "lg:col-span-2" : "",
+                "cursor-move"
+              )}
+            >
+              <DashboardWidget
+                title={widget.title}
+                value={widget.value}
+                icon={widget.icon}
+                description={widget.description}
+                chart={widget.chart}
+                isDragging={draggingId === widget.id}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
-    </main>
+    </div>
   );
 }

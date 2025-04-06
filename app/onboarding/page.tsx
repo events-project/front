@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { useUser, useOrganizationList } from "@clerk/nextjs";
+import { useUser, useOrganizationList, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Building2, Sparkles, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +37,7 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const { session } = useSession();
+  const clerk = useClerk();
 
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,23 +49,28 @@ export default function OnboardingPage() {
         name,
         slug: slug || generateUniqueSlug(name),
       });
+
       if (org) {
         await setActive?.({ organization: org });
 
-        // Call API to update metadata AND refresh session
-        await fetch("/api/set-onboarding-complete", { method: "POST" })
-          .then((res) => res.json())
-          .then((data) =>
-            console.log("🔁 /api/set-onboarding-complete response:", data)
-          );
+        if (user) {
+          // Update user metadata (will eventually sync into sessionClaims)
+          await user.update({
+            unsafeMetadata: {
+              onboardingComplete: true,
+            },
+          });
 
-        // 🔁 Force Clerk to refresh the session
-        document.cookie = "__clerk_refresh=true; path=/";
+          // ✅ TEMP COOKIE: allow immediate redirect while claims sync
+          document.cookie = "onboarding_complete=true; path=/; max-age=60";
 
-        // Give Clerk time to refresh session, then redirect
-        setTimeout(() => {
-          router.push(`/organization/${org.id}`);
-        }, 500);
+          // Optional: trigger Clerk refresh if you have an API route for that
+          await fetch("/api/refresh-session", { method: "POST" });
+        }
+
+        // ✅ Important: full reload, not router.push!
+        await new Promise((res) => setTimeout(res, 1000)); // allow claims to sync
+        window.location.href = `/organization/${org.id}`;
       }
     } catch (err: any) {
       console.error("Error:", err);

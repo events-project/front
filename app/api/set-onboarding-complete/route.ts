@@ -9,22 +9,22 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  console.log("🔥 API HIT: Setting onboardingComplete = true for", userId);
+  const user = await clerkClient.users.getUser(userId);
+  const onboardingComplete = user.unsafeMetadata?.onboardingComplete;
 
-  // ✅ Update publicMetadata
-  await clerkClient.users.updateUser(userId, {
-    publicMetadata: {
-      onboardingComplete: true,
-    },
-  });
+  if (onboardingComplete) {
+    await clerkClient.users.updateUser(userId, {
+      publicMetadata: { onboardingComplete },
+    });
+  }
 
-  // ✅ Create response and set refresh cookie
-  const response = NextResponse.json({ status: "success" });
-  response.cookies.set("__clerk_refresh", "true", {
+  const res = NextResponse.json({ status: "synced" });
+
+  // 🔄 Hint Clerk to refresh session claims
+  res.cookies.set("__clerk_refresh", "true", {
     path: "/",
-    httpOnly: false,
-    sameSite: "lax", // <-- lowercase fixed here
+    maxAge: 60,
   });
 
-  return response;
+  return res;
 }
