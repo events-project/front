@@ -12,6 +12,7 @@
     "@clerk/backend": "^1.26.0",
     "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/nextjs": "^6.13.0",
+    "@events-project/grpc-account": "^1.0.6",
     "@grpc/grpc-js": "^1.13.2",
     "@grpc/proto-loader": "^0.7.13",
     "@radix-ui/react-label": "^2.1.2",

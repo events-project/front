@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { completeOnboarding } from "@/features/on-boarding/actions";
+import {
+  completeOnboarding,
+  createAccount,
+} from "@/features/on-boarding/actions";
 import { useClerk, useOrganizationList } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { Building2, ChevronRight } from "lucide-react";
@@ -25,6 +28,7 @@ const OnBoarding = () => {
       startTransition(async () => {
         const org = await createOrganization?.({ name, slug });
         if (!org) return;
+        await createAccount({ id: org.id });
         await completeOnboarding();
         await clerk.session?.touch();
         router.push("/dashboard");
