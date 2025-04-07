@@ -1,19 +1,26 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
-import { clerkClient } from "@clerk/clerk-sdk-node";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
-export async function completeOnboarding(orgId: string) {
+export const completeOnboarding = async (formData: FormData) => {
   const { userId } = await auth();
 
-  if (!userId) return { error: "Not authenticated" };
+  if (!userId) {
+    return { message: "No Logged In User" };
+  }
 
-  await clerkClient.users.updateUser(userId, {
-    publicMetadata: {
-      onboardingComplete: true,
-      organizationId: orgId,
-    },
-  });
+  const client = await clerkClient();
 
-  return { message: "success" };
-}
+  try {
+    const res = await client.users.updateUser(userId, {
+      publicMetadata: {
+        onboardingComplete: true,
+        applicationName: formData.get("applicationName"),
+        applicationType: formData.get("applicationType"),
+      },
+    });
+    return { message: res.publicMetadata };
+  } catch (err) {
+    return { error: "There was an error updating the user metadata." };
+  }
+};

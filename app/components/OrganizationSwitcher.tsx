@@ -165,7 +165,7 @@ export default function OrganizationSwitcher() {
                 mem={mem}
                 onSelect={async () => {
                   await setActive({ organization: mem.organization.id });
-                  router.push(`/organization/${mem.organization.id}`);
+                  // router.push(`/organization/${mem.organization.id}`);
                 }}
               />
             </motion.div>

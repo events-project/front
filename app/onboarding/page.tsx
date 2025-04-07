@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useUser, useOrganizationList, useClerk } from "@clerk/nextjs";
+import { useState } from "react";
+import { useOrganizationList, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Building2, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +26,6 @@ const generateUniqueSlug = (name: string) => {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, isLoaded: isUserLoaded } = useUser();
   const { createOrganization, setActive, userMemberships, userInvitations } =
     useOrganizationList();
 
@@ -36,7 +35,9 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const clerk = useClerk();
 
-  const handleCreateOrganization = async (e: React.FormEvent) => {
+  const handleCreateOrganization = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     setSubmitting(true);
     setError("");
@@ -51,19 +52,21 @@ export default function OnboardingPage() {
         // ✅ 1. Set this org as active for the user
         await setActive?.({ organization: org });
 
-        // ✅ 2. Set publicMetadata via server action
-        const result = await completeOnboarding(org.id);
+        // ✅ 2. Build FormData and call server action
+        const formData = new FormData();
+        formData.set("applicationName", name); // or another relevant input
+        formData.set("applicationType", "default"); // or collect from user input
+        const result = await completeOnboarding(formData);
 
         if ("error" in result && result.error) {
           setError(result.error);
           return;
         }
 
-        // ✅ 3. Refresh session so the new metadata appears in middleware
+        // ✅ 3. Refresh session so middleware picks up new metadata
         await clerk.session?.touch();
 
-        // ✅ 4. Redirect to the org dashboard
-        router.push(`/organization/${org.id}`);
+        router.push("/dashboard");
       }
     } catch (err: any) {
       console.error("Error:", err);
@@ -74,37 +77,6 @@ export default function OnboardingPage() {
       setSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if (!isUserLoaded || !user) return;
-
-    const handleInvitation = async () => {
-      if (userMemberships?.data?.length) {
-        const membership = userMemberships.data[0];
-        if (membership.organization) {
-          await setActive?.({ organization: membership.organization });
-          router.push(`/organization/${membership.organization.id}`);
-          return;
-        }
-      }
-
-      const invite = userInvitations?.data?.[0];
-      if (invite) {
-        try {
-          await invite.accept();
-          const updatedMembership = userMemberships?.data?.[0];
-          if (updatedMembership?.organization) {
-            await setActive?.({ organization: updatedMembership.organization });
-            router.push(`/organization/${updatedMembership.organization.id}`);
-          }
-        } catch (err) {
-          console.error("Failed to accept invitation", err);
-        }
-      }
-    };
-
-    handleInvitation();
-  }, [user, isUserLoaded, userMemberships, userInvitations, setActive, router]);
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
