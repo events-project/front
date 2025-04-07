@@ -107,18 +107,20 @@ export default function OnboardingPage() {
   }, [user, isUserLoaded, userMemberships, userInvitations, setActive, router]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -inset-[100%] opacity-50 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.1),transparent_50%)]" />
-      </div>
-
+    <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative"
       >
-        <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-2xl">
+        <Card
+          className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-2xl"
+          style={{
+            boxShadow: "0 0 60px 10px rgba(79, 70, 229, 0.2)",
+            borderRadius: "1rem",
+          }}
+        >
           <CardContent className="p-6">
             <div className="flex items-center gap-4 mb-8">
               <motion.div

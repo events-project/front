@@ -1,19 +1,34 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 import { redirect } from "next/navigation";
+import OrganizationSwitcher from "@/app/components/OrganizationSwitcher";
 
 export default async function HomePage() {
   const { userId, orgId } = await auth();
 
   if (!userId) return redirect("/sign-in");
 
-  const user = await currentUser();
-  const onboardingComplete = user?.publicMetadata?.onboardingComplete;
+  // ✅ Fetch user's organizations
+  const memberships = await clerkClient.users.getOrganizationMembershipList({
+    userId,
+  });
 
-  if (!onboardingComplete) return redirect("/onboarding");
+  if (!memberships || memberships.length === 0) {
+    return redirect("/onboarding");
+  }
 
-  // ✅ If no active org, send to onboarding to create one
-  if (!orgId) return redirect("/onboarding");
+  if (memberships.length === 1) {
+    return redirect(`/organization/${memberships[0].organization.id}`);
+  }
 
-  // ✅ All good, go to active org dashboard
-  return redirect(`/organization/${orgId}`);
+  // if (orgId) {
+  //   return redirect(`/organization/${orgId}`);
+  // }
+
+  // ✅ More than one organization — show switcher
+  return (
+    <main className="p-8 max-w-2xl mx-auto">
+      <OrganizationSwitcher />
+    </main>
+  );
 }

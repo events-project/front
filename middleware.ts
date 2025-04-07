@@ -23,7 +23,7 @@ export default clerkMiddleware(async (auth, req) => {
     onboardingComplete?: boolean;
   };
   const onboardingComplete = metadata?.onboardingComplete;
-  console.log("🧠 sessionClaims:", sessionClaims);
+  // console.log("🧠 sessionClaims:", sessionClaims);
   console.log("🧠 User:", userId);
   console.log("✅ Onboarding Complete (from metadata):", onboardingComplete);
 
