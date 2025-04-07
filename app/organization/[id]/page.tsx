@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -138,6 +138,13 @@ interface Widget {
 }
 
 export default function OrganizationPage() {
+  useEffect(() => {
+    if (localStorage.getItem("onboardingComplete") === "true") {
+      localStorage.removeItem("onboardingComplete");
+      console.log("🧹 onboardingComplete localStorage flag removed");
+    }
+  }, []);
+
   const [widgets, setWidgets] = useState<Widget[]>([
     {
       id: "enrollments",

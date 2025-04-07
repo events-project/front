@@ -1,18 +1,16 @@
 "use client";
 
-import type React from "react";
-
 import { useState, useEffect } from "react";
 import { useUser, useOrganizationList, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { Building2, Sparkles, ChevronRight } from "lucide-react";
+import { Building2, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion } from "framer-motion";
-import { useSession } from "@clerk/nextjs";
+import { completeOnboarding } from "./_actions";
 
 const slugify = (text: string) =>
   text
@@ -36,7 +34,6 @@ export default function OnboardingPage() {
   const [slug, setSlug] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { session } = useSession();
   const clerk = useClerk();
 
   const handleCreateOrganization = async (e: React.FormEvent) => {
@@ -51,26 +48,22 @@ export default function OnboardingPage() {
       });
 
       if (org) {
+        // ✅ 1. Set this org as active for the user
         await setActive?.({ organization: org });
 
-        if (user) {
-          // Update user metadata (will eventually sync into sessionClaims)
-          await user.update({
-            unsafeMetadata: {
-              onboardingComplete: true,
-            },
-          });
+        // ✅ 2. Set publicMetadata via server action
+        const result = await completeOnboarding(org.id);
 
-          // ✅ TEMP COOKIE: allow immediate redirect while claims sync
-          document.cookie = "onboarding_complete=true; path=/; max-age=60";
-
-          // Optional: trigger Clerk refresh if you have an API route for that
-          await fetch("/api/refresh-session", { method: "POST" });
+        if ("error" in result && result.error) {
+          setError(result.error);
+          return;
         }
 
-        // ✅ Important: full reload, not router.push!
-        await new Promise((res) => setTimeout(res, 1000)); // allow claims to sync
-        window.location.href = `/organization/${org.id}`;
+        // ✅ 3. Refresh session so the new metadata appears in middleware
+        await clerk.session?.touch();
+
+        // ✅ 4. Redirect to the org dashboard
+        router.push(`/organization/${org.id}`);
       }
     } catch (err: any) {
       console.error("Error:", err);
@@ -84,12 +77,6 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!isUserLoaded || !user) return;
-
-    // Check if user already has onboardingComplete set to true
-    const onboardingComplete =
-      user.publicMetadata?.onboardingComplete ||
-      (user.unsafeMetadata as any)?.onboardingComplete;
-    console.log("Current onboarding status:", onboardingComplete);
 
     const handleInvitation = async () => {
       if (userMemberships?.data?.length) {
@@ -121,7 +108,6 @@ export default function OnboardingPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -inset-[100%] opacity-50 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.1),transparent_50%)]" />
       </div>
@@ -171,48 +157,30 @@ export default function OnboardingPage() {
               className="space-y-6"
             >
               <div className="space-y-2">
-                <Label
-                  htmlFor="name"
-                  className="text-sm font-medium flex items-center gap-2"
-                >
-                  Organization Name
-                  <Sparkles className="w-4 h-4 text-purple-500" />
-                </Label>
+                <Label htmlFor="name">Organization Name</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Enter a name for your organization"
+                  placeholder="Enter a name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="h-12 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 transition-all duration-200"
                 />
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="slug" className="text-sm font-medium">
-                    Organization URL
-                  </Label>
-                  <span className="text-xs px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300">
-                    Optional
-                  </span>
-                </div>
+                <Label htmlFor="slug">Organization Slug (optional)</Label>
                 <Input
                   id="slug"
                   type="text"
-                  placeholder="your-organization-url"
+                  placeholder="your-org-url"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  className="h-12 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 transition-all duration-200"
                 />
               </div>
 
               {error && (
-                <Alert
-                  variant="destructive"
-                  className="bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800"
-                >
+                <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
@@ -222,21 +190,15 @@ export default function OnboardingPage() {
                   type="button"
                   variant="outline"
                   onClick={() => router.push("/")}
-                  className="h-12 px-6 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="h-12 px-6 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg shadow-purple-500/25 transition-all duration-200"
-                >
+                <Button type="submit" disabled={submitting}>
                   {submitting ? (
                     "Creating..."
                   ) : (
                     <span className="flex items-center gap-2">
-                      Create Organization
-                      <ChevronRight className="w-4 h-4" />
+                      Create Organization <ChevronRight className="w-4 h-4" />
                     </span>
                   )}
                 </Button>

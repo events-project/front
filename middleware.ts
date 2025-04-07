@@ -1,51 +1,43 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { clerkClient } from "@clerk/clerk-sdk-node"; // ✅ FIXED
 
-const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
 const isPublicRoute = createRouteMatcher([
-  "/sign-in",
-  "/sign-up",
+  "/auth/sign-in",
+  "/auth/sign-up",
   "/onboarding",
-  "/api/refresh-session",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, sessionClaims, redirectToSignIn } = await auth();
+  const { userId, sessionClaims } = await auth();
 
-  const onboardingComplete = (sessionClaims?.publicMetadata as any)
-    ?.onboardingComplete;
-  const tempCookie = req.cookies.get("onboarding_complete");
+  if (!userId) {
+    console.log("⚠️ No user logged in");
+    if (!isPublicRoute(req)) {
+      return NextResponse.redirect(new URL("/auth/sign-in", req.url));
+    }
+    return NextResponse.next();
+  }
 
-  console.log("🔍 Middleware route:", req.nextUrl.pathname);
+  const metadata = sessionClaims?.publicMetadata as {
+    onboardingComplete?: boolean;
+  };
+  const onboardingComplete = metadata?.onboardingComplete;
+  console.log("🧠 sessionClaims:", sessionClaims);
   console.log("🧠 User:", userId);
-  console.log(
-    `✅ Onboarding Complete: ${onboardingComplete} | Cookie: ${tempCookie?.value}`
-  );
+  console.log("✅ Onboarding Complete (from metadata):", onboardingComplete);
 
-  // // Skip onboarding check for organization routes temporarily
-  // if (req.nextUrl.pathname.startsWith("/organization/")) {
-  //   console.log("🔄 Skipping onboarding check for organization route");
-  //   return NextResponse.next();
-  // }
+  // ✅ Check if the user is a member of any organization
+  const memberships = await clerkClient.users.getOrganizationMembershipList({
+    userId,
+  });
 
-  if (!userId && !isPublicRoute(req)) {
-    return redirectToSignIn({ returnBackUrl: req.url });
-  }
+  const hasOrg = memberships.length > 0;
+  console.log("🏢 Has organization:", hasOrg);
 
-  if (
-    userId &&
-    !onboardingComplete &&
-    !tempCookie?.value &&
-    !isOnboardingRoute(req)
-  ) {
+  if (!hasOrg && req.nextUrl.pathname !== "/onboarding") {
+    console.log("🔁 Redirecting to onboarding...");
     return NextResponse.redirect(new URL("/onboarding", req.url));
-  }
-
-  // Optional: clean up cookie if claims have synced
-  if (onboardingComplete && tempCookie?.value) {
-    const res = NextResponse.next();
-    res.cookies.set("onboarding_complete", "", { maxAge: 0 });
-    return res;
   }
 
   return NextResponse.next();
