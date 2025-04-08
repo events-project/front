@@ -1,34 +1,34 @@
 "use client";
 
 import { Elements } from "@stripe/react-stripe-js";
+import { getClientSecret } from "./get-secret";
 import React, { memo, useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
+import {getAccountId} from "@/features/on-boarding/actions";
 
 const stripePromise = loadStripe(
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
+//const result = await accountRpcClient.getAccount({ id: "123" });
+
+
 type Props = {
     children: React.ReactNode;
 };
+const data = await getAccountId({ id: "123" }); //TODO : pull this id from the metadata
+
 
 const StripeProvider = ({ children }: Props) => {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
 
     useEffect(() => {
-        const initializeStripe = async () => {
-            try {
-                const response = await fetch("/api/stripe/setup-intent", {
-                    method: "POST",
-                });
-                const { clientSecret: secret } = await response.json();
-                setClientSecret(secret);
-            } catch (error) {
-                console.error("Failed to initialize Stripe:", error);
-            }
-        };
+        // TODO: get client id
 
-        initializeStripe();
+
+        getClientSecret(data.stripeId).then((secret) =>
+            setClientSecret(secret)
+        );
     }, []);
 
     if (!clientSecret) return null;
@@ -44,5 +44,4 @@ const StripeProvider = ({ children }: Props) => {
         </Elements>
     );
 };
-
 export default memo(StripeProvider);

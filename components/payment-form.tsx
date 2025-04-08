@@ -27,9 +27,14 @@ export const PaymentForm = () => {
     );
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4">
             <PaymentElement />
-            <button>Submit</button>
+            <button
+                type="submit"
+                className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+                Submit
+            </button>
         </form>
     );
 };
