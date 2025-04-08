@@ -35,7 +35,7 @@ export default function RevealKeyClient() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-zinc-100 text-zinc-800 p-6">
+    <main className="min-h-screen flex items-center justify-center text-zinc-800 p-6">
       <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-md border border-zinc-200">
         <h1 className="text-2xl font-bold text-center mb-6">
           🔐 Reveal API Key
