@@ -1,13 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  completeOnboarding,
-  createAccount,
-} from "@/features/on-boarding/actions";
+import { completeOnboarding } from "@/actions/complete-onboard";
+import { createAccount } from "@/actions/create-account";
+import { Button } from "@/components/shared/button";
+import { Card, CardContent } from "@/components/shared/card";
+import { Input } from "@/components/shared/input";
+import { Label } from "@/components/shared/label";
 import { useClerk, useOrganizationList } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { Building2, ChevronRight } from "lucide-react";

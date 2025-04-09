@@ -1,9 +1,9 @@
-import RevealKeyClient from "@/components/RevealKeyClient";
+import RevealKey from "@/components/reveal-key";
 
-export default function RevealKeyPage() {
+export default function Page() {
   return (
     <div className="p-4">
-      <RevealKeyClient />
+      <RevealKey />
     </div>
   );
 }

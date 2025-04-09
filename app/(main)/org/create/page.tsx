@@ -1,4 +1,4 @@
-import { OnBoarding } from "@/features/on-boarding/ui";
+import OnBoarding from "@/components/on-boarding";
 
 const createOrganization = () => {
   return (

@@ -4,8 +4,8 @@ import { Elements } from "@stripe/react-stripe-js";
 import { getClientSecret } from "./actions/get-secret";
 import React, { memo, useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { getAccountId } from "@/features/account/actions/get-account-id";
 import { useAuth } from "@clerk/nextjs";
+import { getAccountId } from "@/actions/get-account-id";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!

@@ -1,5 +1,5 @@
-import Navbar from "@/components/Navbar";
-
+import Navbar from "@/components/nav-bar";
+import MainClientProvider from "@/providers/main-client";
 export default function MainLayout({
   children,
 }: Readonly<{
@@ -7,8 +7,10 @@ export default function MainLayout({
 }>) {
   return (
     <>
-      <Navbar />
-      <main>{children}</main>
+      <MainClientProvider>
+        <Navbar />
+        <main>{children}</main>
+      </MainClientProvider>
     </>
   );
 }

@@ -6,5 +6,5 @@ import {
 } from "@events-project/grpc-account";
 export const createAccount = async (params: CreateAccountRequest) => {
   const result = await accountRpcClient.createAccount({ id: params.id });
-  return result
+  return result;
 };

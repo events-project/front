@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 
-export default function RevealKeyClient() {
+const RevalKey = () => {
   const [accountId, setAccountId] = useState("");
   const [secretId, setSecretId] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -80,4 +80,6 @@ export default function RevealKeyClient() {
       </div>
     </main>
   );
-}
+};
+
+export default memo(RevalKey);
