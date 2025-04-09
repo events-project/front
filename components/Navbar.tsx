@@ -7,8 +7,9 @@ import {
   useOrganization,
 } from "@clerk/nextjs";
 import Link from "next/link";
+import { memo } from "react";
 
-export default function Navbar() {
+const Navbar = () => {
   const router = useRouter();
   const { organization } = useOrganization(); // ✅ get active org
 
@@ -36,10 +37,8 @@ export default function Navbar() {
               rootBox: "border border-gray-200 rounded-md px-2 py-1",
             },
           }}
-          afterSelectOrganizationUrl="/organization/:id"
-          createOrganizationUrl="/createOrganization"
-          organizationProfileUrl="/organization-settings"
-          hideSlug
+          createOrganizationUrl="/org/create"
+          hidePersonal
         />
       </div>
 
@@ -60,4 +59,6 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+};
+
+export default memo(Navbar);

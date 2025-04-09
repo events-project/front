@@ -1,29 +1,29 @@
 "use client";
 
 import { Elements } from "@stripe/react-stripe-js";
-import { getClientSecret } from "./get-secret";
+import { getClientSecret } from "./actions/get-secret";
 import React, { memo, useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import {getAccountId} from "@/features/stripe-payment-intent/actions";
+import { getAccountId } from "@/features/account/actions/get-account-id";
+import { useAuth } from "@clerk/nextjs";
 
 const stripePromise = loadStripe(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
 type Props = {
-    children: React.ReactNode;
+  children: React.ReactNode;
 };
 
-
-
 const StripeProvider = ({ children }: Props) => {
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const { orgId } = useAuth();
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
-    useEffect(() => {
+  useEffect(() => {
+    if (!orgId) return;
     const fetchClientSecret = async () => {
       try {
-        // Replace "yourAccountId" with the actual value or metadata lookup
-        const accountData = await getAccountId({ id: "123" });
+        const accountData = await getAccountId({ id: orgId || "" });
         const secret = await getClientSecret(accountData.stripeId);
         setClientSecret(secret);
       } catch (error) {
@@ -32,19 +32,19 @@ const StripeProvider = ({ children }: Props) => {
     };
 
     fetchClientSecret();
-    }, []);
+  }, [orgId]);
 
-    if (!clientSecret) return null;
+  if (!clientSecret) return <></>;
 
-    return (
-        <Elements
-            stripe={stripePromise}
-            options={{
-                clientSecret,
-            }}
-        >
-            {children}
-        </Elements>
-    );
+  return (
+    <Elements
+      stripe={stripePromise}
+      options={{
+        clientSecret,
+      }}
+    >
+      {children}
+    </Elements>
+  );
 };
 export default memo(StripeProvider);
