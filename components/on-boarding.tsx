@@ -21,20 +21,21 @@ const OnBoarding = () => {
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = useCallback(
-      async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        startTransition(async () => {
-          const org = await createOrganization?.(
-              slug ? { name, slug } : { name }
-          );
-          if (!org) return;
-          await createAccount({ id: org.id });
-          await completeOnboarding();
-          await clerk.session?.touch();
-          router.push("/dashboard");
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      startTransition(async () => {
+        const org = await createOrganization?.({
+          name,
+          slug: slug || undefined,
         });
-      },
-      [name, slug, createOrganization, router, clerk]
+        if (!org) return;
+        await createAccount({ id: org.id });
+        await completeOnboarding();
+        await clerk.session?.touch();
+        router.push("/dashboard");
+      });
+    },
+    [name, slug, createOrganization, router, clerk]
   );
 
 
