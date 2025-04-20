@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { getCustomerPaymentMethods } from "@/actions/payment-list"
-import { Button } from "@/components/ui/shared/button"
-import { Card, CardContent } from "@/components/ui/shared/card"
+import { getCustomerPaymentMethods} from "@/actions/payment-list"
+import { Button } from "@/components/shared/button"
+import { Card, CardContent } from "@/components/shared/card"
 import { Loader2 } from 'lucide-react'
+import {useAuth} from "@clerk/nextjs";
 
 type PaymentMethod = {
   id: string
@@ -17,22 +18,23 @@ type PaymentMethod = {
 }
 
 interface PaymentMethodsManagerProps {
-  customerId: string
   onAddPaymentMethod?: () => void
   onDeletePaymentMethod?: (paymentMethodId: string) => void
 }
 
+
+
 const PaymentMethodsManager = ({
-  customerId,
   onAddPaymentMethod,
   onDeletePaymentMethod,
 }: PaymentMethodsManagerProps) => {
+  const { orgId } = useAuth()
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPaymentMethods = useCallback(async () => {
-    if (!customerId) {
+    if (!orgId) {
       setError("Customer ID is required")
       setLoading(false)
       return
@@ -41,8 +43,9 @@ const PaymentMethodsManager = ({
     try {
       setLoading(true)
       setError(null)
-      
-      const result = await getCustomerPaymentMethods(customerId)
+
+
+      const result = await getCustomerPaymentMethods(orgId)
       
       if (result.success) {
         setPaymentMethods(result.data || [])
@@ -54,7 +57,7 @@ const PaymentMethodsManager = ({
     } finally {
       setLoading(false)
     }
-  }, [customerId])
+  }, [orgId])
 
   useEffect(() => {
     fetchPaymentMethods()
@@ -115,8 +118,8 @@ const PaymentMethodsManager = ({
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Payment Methods</h2>
-        <Button 
-          onClick={onAddPaymentMethod} 
+        <Button
+          onClick={onAddPaymentMethod}
           variant="outline"
         >
           Add Payment Method

@@ -6,38 +6,21 @@ import { getAccountId } from "@/actions/get-account-id"
 // Initialize Stripe using your secret key from environment variables
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "")
 
+
 /**
  * Retrieves all payment methods for the current user from their session
  * No need to pass customer ID explicitly - it's retrieved from the session
  */
-export async function getCurrentUserPaymentMethods() {
-  try {
-    const customerId = await getAccountId({ id: orgId || "" })
-
-    if (!customerId) {
-      return {
-        success: false,
-        error: "No customer ID found in session. User might not be logged in or doesn't have a Stripe customer ID.",
-      }
-    }
-
-    return getCustomerPaymentMethods(customerId)
-  } catch (error) {
-    console.error("Error retrieving current user payment methods:", error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
-    }
-  }
-}
 
 /**
  * Retrieves all payment methods for a specific customer ID
  * This is a more generic function that can be used with any customer ID
  */
-export async function getCustomerPaymentMethods(customerId: string) {
+export async function getCustomerPaymentMethods(orgId: string) {
   try {
-    if (!customerId) {
+    const result = await getAccountId({ id: orgId || "" })
+
+    if (!result) {
       return {
         success: false,
         error: "Customer ID is required",
@@ -45,7 +28,7 @@ export async function getCustomerPaymentMethods(customerId: string) {
     }
 
     const paymentMethods = await stripe.paymentMethods.list({
-      customer: customerId,
+      customer: result.stripeId,
       type: "card",
     })
 
