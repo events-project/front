@@ -2,6 +2,7 @@
 
 import { Elements } from "@stripe/react-stripe-js";
 import { getClientSecret } from "./actions/get-secret";
+import {DELETE} from "./actions/delete-payment-method"
 import React, { memo, useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { useAuth } from "@clerk/nextjs";
@@ -34,6 +35,13 @@ const StripeProvider = ({ children }: Props) => {
     fetchClientSecret();
   }, [orgId]);
 
+  const hadleDeletePaymentMethod = async (paymentMethodId: string) => {
+    try {
+      await DELETE({ customerId: orgId || "", paymentMethodId });
+    } catch (error) {
+      console.error("Error deleting payment method:", error);
+    }
+  };
   if (!clientSecret) return <></>;
 
   return (

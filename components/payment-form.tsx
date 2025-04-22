@@ -19,6 +19,7 @@ const PaymentForm = () => {
       if (!stripe || !elements) return null;
       const { error } = await stripe.confirmSetup({
         elements,
+
         confirmParams: {
           return_url: "http://localhost:3000/payment-form",
         },

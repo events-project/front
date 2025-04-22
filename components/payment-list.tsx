@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { getCustomerPaymentMethods } from "@/actions/payment-list"
+import { getCustomerPaymentMethods , deleteCustomerPaymentMethod } from "@/actions/payment-list"
 import { Button } from "@/components/shared/button"
 import { Card, CardContent } from "@/components/shared/card"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "@clerk/nextjs"
+import Cards from 'react-credit-cards-2'
 
 
 type PaymentMethod = {
@@ -52,24 +53,24 @@ const PaymentMethodsManager = () => {
   }, [fetchPaymentMethods])
 
   const handleDeletePaymentMethod = async (paymentMethodId: string) => {
-    // TODO: Add your delete logic here
+    if (!orgId) return
+    setLoading(true)
+    try {
+      const result = await deleteCustomerPaymentMethod(orgId, paymentMethodId)
+      if (!result.success) {
+        alert(`Could not delete card: ${result.error}`)
+      } else {
+        await fetchPaymentMethods()
+      }
+    } catch (err: any) {
+      alert(`Unexpected error: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
     await fetchPaymentMethods()
   }
 
-  const getCardBrandIcon = (brand?: string) => {
-    switch (brand?.toLowerCase()) {
-      case "visa":
-        return "💳 Visa"
-      case "mastercard":
-        return "💳 Mastercard"
-      case "amex":
-        return "💳 Amex"
-      case "discover":
-        return "💳 Discover"
-      default:
-        return "💳 Card"
-    }
-  }
+
 
   if (loading) {
     return (
@@ -113,31 +114,47 @@ const PaymentMethodsManager = () => {
             </div>
         ) : (
             <div className="space-y-4">
-              {paymentMethods.map((method) => (
-                  <Card key={method.id} className="border border-gray-200 rounded-xl shadow-sm">
-                    <CardContent className="p-5">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                          <div className="text-2xl">{getCardBrandIcon(method.card?.brand)}</div>
-                          <div>
-                            <p className="font-medium text-lg">•••• {method.card?.last4}</p>
+              {paymentMethods.map((m) => {
+                const number   = `•••• ${m.card?.last4}`
+                const expiry   = [
+                  String(m.card?.exp_month ?? '').padStart(2, '0'),
+                  String(m.card?.exp_year).slice(-2)
+                ].join('/')
+                const issuer   = m.card?.brand?.toLowerCase()
+                return (
+                    <Card key={m.id} className="border-gray-200 rounded-xl shadow-sm">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-6">
+                          <div className="w-[290px]">
+                            <Cards
+                                number={number}
+                                name={''}           // if you don’t have a cardholder name
+                                expiry={expiry}
+                                cvc={''}
+                                focused={''}
+                                preview             // show masked preview
+                                issuer={issuer}     // helps pick the right logo/bg
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-lg">{number}</p>
                             <p className="text-sm text-muted-foreground">
-                              Expires {method.card?.exp_month}/{method.card?.exp_year}
+                              Expires {expiry}
                             </p>
                           </div>
+                          <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeletePaymentMethod(m.id)}
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                          >
+                            Delete
+                          </Button>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeletePaymentMethod(method.id)}
-                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-              ))}
+                      </CardContent>
+                    </Card>
+                )
+              })}
             </div>
         )}
       </div>

@@ -7,10 +7,19 @@ import { getAccountId } from "@/actions/get-account-id"
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "")
 
 
-/**
- * Retrieves all payment methods for the current user from their session
- * No need to pass customer ID explicitly - it's retrieved from the session
- */
+export async function deleteCustomerPaymentMethod(
+    customerId: string,
+    paymentMethodId: string
+): Promise<{ success: boolean; error?: string }> {
+  const res = await fetch('/api/payment-methods', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ customerId, paymentMethodId }),
+  })
+  return res.json()
+}
+
+
 
 /**
  * Retrieves all payment methods for a specific customer ID
@@ -84,4 +93,7 @@ export async function getCustomerCards(customerId: string) {
       error: error instanceof Error ? error.message : "Unknown error occurred",
     }
   }
+
+
+
 }
