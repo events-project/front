@@ -30,6 +30,7 @@ const RevalKey = () => {
         setError(data.error || "Something went wrong");
       }
     } catch (err) {
+      console.log(err);
       setError("Network error");
     }
   };

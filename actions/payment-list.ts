@@ -20,31 +20,3 @@ export async function getCustomerPaymentMethods(
 
   return paymentMethods.data;
 }
-
-export async function getCustomerCard(customerId: string, cardId: string) {
-  try {
-    const card = await stripe.customers.retrieveSource(customerId, cardId);
-    return { success: true, data: card };
-  } catch (error) {
-    console.log(error);
-    return {
-      success: false,
-      error: "Unknown error",
-    };
-  }
-}
-
-export async function getCustomerCards(customerId: string) {
-  try {
-    const cards = await stripe.customers.listSources(customerId, {
-      object: "card",
-    });
-    return { success: true, data: cards.data };
-  } catch (error) {
-    console.log(error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
-    };
-  }
-}
