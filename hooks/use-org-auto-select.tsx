@@ -8,7 +8,6 @@ export const useOrgAutoSelect = () => {
     userMemberships: true,
   });
   const { orgId } = useAuth();
-  console.log(userMemberships);
 
   useEffect(() => {
     if (orgId || !setActive) return;
