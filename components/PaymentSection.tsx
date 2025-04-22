@@ -15,7 +15,6 @@ export default function PaymentSection() {
 
 
     return ( <div className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-6">Payment Methods</h1>
 
         {/* Desktop view: Side by side */}
             <div className="hidden md:grid md:grid-cols-2 md:gap-8 items-start">

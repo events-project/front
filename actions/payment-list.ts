@@ -35,7 +35,19 @@ export async function getCustomerPaymentMethods(orgId: string) {
       type: "card",
     })
 
-    return { success: true, data: paymentMethods.data }
+    return {
+      success: true,
+      data: paymentMethods.data.map(pm => ({
+        id: pm.id,
+        card: {
+          name: pm.billing_details?.name ?? '',
+          brand: pm.card?.brand,
+          last4: pm.card?.last4,
+          exp_month: pm.card?.exp_month,
+          exp_year: pm.card?.exp_year
+        }
+      }))
+    }
   } catch (error) {
     console.error("Error retrieving payment methods:", error)
 

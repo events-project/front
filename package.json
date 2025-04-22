@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "i": "npm install --legacy-peer-deps",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
@@ -27,6 +28,7 @@
     "lucide-react": "^0.487.0",
     "next": "15.2.4",
     "react": "^19.1.0",
+    "react-credit-cards-2": "^1.0.3",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.2",
     "stripe": "^18.0.0",
