@@ -6,7 +6,7 @@ import { Button } from "@/components/shared/button"
 import { Card, CardContent } from "@/components/shared/card"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "@clerk/nextjs"
-import Cards from 'react-credit-cards-2'
+import {CreditCardPreview} from "@/components/shared/credit-card-preview";
 
 
 type PaymentMethod = {
@@ -115,44 +115,41 @@ const PaymentMethodsManager = () => {
         ) : (
             <div className="space-y-4">
               {paymentMethods.map((m) => {
-                const number   = `•••• ${m.card?.last4}`
                 const expiry   = [
                   String(m.card?.exp_month ?? '').padStart(2, '0'),
                   String(m.card?.exp_year).slice(-2)
                 ].join('/')
-                const issuer   = m.card?.brand?.toLowerCase()
                 return (
                     <Card key={m.id} className="border-gray-200 rounded-xl shadow-sm">
                       <CardContent className="p-5">
-                        <div className="flex items-center gap-6">
-                          <div className="w-[290px]">
-                            <Cards
-                                number={number}
-                                name={''}           // if you don’t have a cardholder name
-                                expiry={expiry}
-                                cvc={''}
-                                focused={''}
-                                preview             // show masked preview
-                                issuer={issuer}     // helps pick the right logo/bg
-                            />
+                        <div className="flex flex-col items-center gap-4">
+                          {/* Card and Details */}
+                          <div className="flex items-center gap-6 flex-1">
+                            <div className="w-[290px] shrink-0">
+                              <CreditCardPreview
+                                  brand={m.card?.brand}
+                                  last4={m.card?.last4}
+                                  expiry={expiry}
+                              />
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-lg">{number}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Expires {expiry}
-                            </p>
+
+                          {/* Delete Button */}
+                          <div className="md:ml-auto text-right md:text-left">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeletePaymentMethod(m.id)}
+                                className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            >
+                              Delete
+                            </Button>
                           </div>
-                          <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeletePaymentMethod(m.id)}
-                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                          >
-                            Delete
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
+
+
                 )
               })}
             </div>

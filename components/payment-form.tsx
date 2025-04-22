@@ -30,7 +30,7 @@ const PaymentForm = () => {
   );
 
     return (
-        <Card className="shadow-md border border-gray-200">
+        <Card className="flex-1 border shadow-sm transition-all duration-500 ease-in-out overflow-hidden">
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -46,7 +46,7 @@ const PaymentForm = () => {
                         type="submit"
                         className="w-full bg-blue-600 text-white hover:bg-blue-700"
                     >
-                        Save Card
+                        Submit Payment
                     </Button>
                 </form>
             </CardContent>
