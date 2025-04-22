@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { getCustomerPaymentMethods , deleteCustomerPaymentMethod } from "@/actions/payment-list"
+import { getCustomerPaymentMethods } from "@/actions/payment-list"
 import { Button } from "@/components/shared/button"
 import { Card, CardContent } from "@/components/shared/card"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "@clerk/nextjs"
 import {CreditCardPreview} from "@/components/shared/credit-card-preview";
+import {deleteCustomerPaymentMethods} from "@/actions/payment-list";
+
 
 
 type PaymentMethod = {
@@ -56,18 +58,15 @@ const PaymentMethodsManager = () => {
     if (!orgId) return
     setLoading(true)
     try {
-      const result = await deleteCustomerPaymentMethod(orgId, paymentMethodId)
-      if (!result.success) {
-        alert(`Could not delete card: ${result.error}`)
-      } else {
-        await fetchPaymentMethods()
-      }
-    } catch (err: any) {
-      alert(`Unexpected error: ${err.message}`)
+      // ✅ Call the server action directly
+      await deleteCustomerPaymentMethods(orgId, paymentMethodId)
+
+      await fetchPaymentMethods()
+    } catch (err) {
+      console.error("Failed to delete payment method:", err)
     } finally {
       setLoading(false)
     }
-    await fetchPaymentMethods()
   }
 
 

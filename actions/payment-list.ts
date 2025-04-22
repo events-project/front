@@ -7,18 +7,12 @@ import { getAccountId } from "@/actions/get-account-id"
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "")
 
 
-export async function deleteCustomerPaymentMethod(
-    customerId: string,
-    paymentMethodId: string
-): Promise<{ success: boolean; error?: string }> {
-  const res = await fetch('/api/payment-methods', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ customerId, paymentMethodId }),
-  })
-  return res.json()
-}
+export async function deleteCustomerPaymentMethods(orgId: string, paymentMethodId: string) {
+  if (!orgId || !paymentMethodId) throw new Error("Missing parameters")
 
+  // Detach the payment method from the customer
+  await stripe.paymentMethods.detach(paymentMethodId)
+}
 
 
 /**
