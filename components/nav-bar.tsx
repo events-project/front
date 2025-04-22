@@ -8,6 +8,7 @@ import {
 } from "@clerk/nextjs";
 import Link from "next/link";
 import { memo } from "react";
+import {CreditCard} from "lucide-react";
 
 const Navbar = () => {
   const router = useRouter();
@@ -44,18 +45,25 @@ const Navbar = () => {
 
       <div className="flex items-center gap-4">
         <button
-          onClick={handleDashboardClick}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm px-4 py-2 rounded-md transition"
+            onClick={handleDashboardClick}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm px-4 py-2 rounded-md transition cursor-pointer"
         >
           Dashboard
         </button>
         <button
-          onClick={() => router.push("/reveal-key")}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md transition"
+            onClick={() => router.push("/reveal-key")}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md transition cursor-pointer"
         >
           Reveal Key
         </button>
-        <UserButton afterSignOutUrl="/sign-in" />
+        <button
+            onClick={() => router.push("/settings")}
+            className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2 transition cursor-pointer"
+        >
+          <CreditCard className="w-4 h-4"/>
+            Payment Methods
+        </button>
+        <UserButton afterSignOutUrl="/sign-in"/>
       </div>
     </nav>
   );

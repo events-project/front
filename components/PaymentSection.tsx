@@ -59,7 +59,7 @@ export default function PaymentSection() {
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
                             >
-                                <Button onClick={() => setShowForm(true)}>+ Add Payment Method</Button>
+                                <Button className="cursor-pointer" onClick={() => setShowForm(true)}>+ Add Payment Method</Button>
                             </motion.div>
                         )}
                     </AnimatePresence>
