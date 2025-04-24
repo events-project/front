@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/shared/card";
+} from "@/components/ui/card";
 import { Trash, Wallet } from "lucide-react";
 import { memo, useCallback } from "react";
 import { cn } from "@/lib/utils";
