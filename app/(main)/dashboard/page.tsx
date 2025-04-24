@@ -1,8 +1,6 @@
 import Breadcrumbs from "@/components/breadcrumbs";
 import { cn } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
-
 export default async function Page() {
   return (
     <>

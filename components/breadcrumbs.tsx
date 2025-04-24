@@ -1,19 +1,15 @@
 "use client";
 
 import { BreadcumbItem, useBreadcumb } from "@/hooks";
-import { memo, useEffect } from "react";
+import { memo, useLayoutEffect } from "react";
 
 type Props = {
   items: BreadcumbItem[];
 };
 const Breadcrumbs = ({ items }: Props) => {
   const { setBreadcumb } = useBreadcumb();
-  useEffect(() => {
+  useLayoutEffect(() => {
     setBreadcumb(items);
-
-    return () => {
-      setBreadcumb([]);
-    };
   }, [items, setBreadcumb]);
   return <></>;
 };

@@ -1,9 +1,7 @@
-import BreadcrumbNav from "@/components/breadcrumb-nav";
 import SideBar from "@/components/side-bar";
-import { Separator } from "@/components/ui/separator";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import MainClientProvider from "@/providers/main-client";
+import TopBar from "@/components/top-bar";
 
 export default function MainLayout({
   children,
@@ -15,19 +13,7 @@ export default function MainLayout({
       <SidebarProvider className="gap-4">
         <SideBar />
         <main className="flex flex-col w-full">
-          <header
-            className={cn(
-              "h-[4rem]",
-              "items-center",
-              "flex",
-              "w-full",
-              "gap-2"
-            )}
-          >
-            <SidebarTrigger className="cursor-pointer" />
-            <Separator orientation="vertical" className="mr-2 max-h-8" />
-            <BreadcrumbNav />
-          </header>
+          <TopBar />
           {children}
         </main>
       </SidebarProvider>

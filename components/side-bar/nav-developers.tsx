@@ -8,6 +8,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { BookOpen, Key } from "lucide-react";
+import Link from "next/link";
 import { memo } from "react";
 
 const items: NavItem[] = [
@@ -32,10 +33,10 @@ const NavDevelopers = () => {
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url}>
+                <Link href={item.url}>
                   {item.icon}
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

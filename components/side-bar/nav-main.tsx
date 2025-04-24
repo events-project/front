@@ -8,6 +8,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { House, CreditCard } from "lucide-react";
+import Link from "next/link";
 import { memo } from "react";
 
 const main: NavItem[] = [
@@ -32,10 +33,10 @@ const NavMain = () => {
             {main.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild>
-                  <a href={item.url}>
+                  <Link href={item.url}>
                     {item.icon}
                     <span>{item.title}</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}

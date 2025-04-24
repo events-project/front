@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import Breadcrumbs from "@/components/breadcrumbs";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +6,7 @@ export default async function Page() {
     <>
       <Breadcrumbs
         items={[
-          { title: "Developers", url: "" },
+          { title: "Developers", url: "/developers" },
           { title: "Keys", url: "/developers/keys" },
         ]}
       />

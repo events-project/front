@@ -3,8 +3,6 @@ import Breadcrumbs from "@/components/breadcrumbs";
 import SavedPaymentMethods from "@/components/saved-payment-methods";
 import { cn } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
-
 export default async function Page() {
   return (
     <>
