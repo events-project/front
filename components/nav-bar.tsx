@@ -49,8 +49,15 @@ const Navbar = () => {
             className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm px-4 py-2 rounded-md transition cursor-pointer"
         >
           Dashboard
-        </button>
-        <button
+          <RevealKeyModal
+  trigger={
+    <button
+      className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md transition cursor-pointer"
+    >
+      Reveal Key
+    </button>
+  }
+/>
             onClick={() => router.push("/reveal-key")}
             className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-md transition cursor-pointer"
         >
