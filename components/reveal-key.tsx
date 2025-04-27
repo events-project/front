@@ -19,10 +19,10 @@ export const RevealKeyPanel = () => {
 
     try {
       setLoading(true);
-      const secret = await getSecretId({ appId: orgId });
+      const result = await getSecretId({ appId: orgId });
       const key = await revealApiKey({
         accountId: orgId,
-        secretId: secret.secretId, // Important: pick the string field
+        secretId: result.secretId,
       });
 
       setApiKey(key);
