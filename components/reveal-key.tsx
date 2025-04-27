@@ -1,6 +1,6 @@
 "use client";
 
-import { useOrganization } from "@clerk/nextjs";
+import {useAuth} from "@clerk/nextjs";
 import { useState } from "react";
 import { Eye, EyeOff, Copy, KeyRound, Shield, XCircle } from "lucide-react";
 import { revealApiKey, getSecretId } from "@/actions";
@@ -12,16 +12,16 @@ export const RevealKeyPanel = () => {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { organization } = useOrganization();
+  const { orgId } = useAuth();
 
   const handleReveal = async () => {
-    if (!organization?.id) return setError("No organization ID found");
+    if (!orgId) return setError("No organization ID found");
 
     try {
       setLoading(true);
-      const secret = await getSecretId({ appId: organization.id });
+      const secret = await getSecretId({ appId: orgId });
       const key = await revealApiKey({
-        accountId: organization.id,
+        accountId: orgId,
         secretId: secret.secretId, // Important: pick the string field
       });
 
