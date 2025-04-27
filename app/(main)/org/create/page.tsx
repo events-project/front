@@ -1,9 +1,10 @@
-import OnBoarding from "@/components/on-boarding";
+import CreateOrganization from "@/components/create-organization";
+import { cn } from "@/lib/utils";
 
 export default async function Page() {
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <OnBoarding />
-    </main>
+    <div className={cn("flex justify-center h-full items-center")}>
+      <CreateOrganization />
+    </div>
   );
 }
