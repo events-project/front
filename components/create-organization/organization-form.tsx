@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useOrganizationList } from "@clerk/nextjs";
+import { useClerk, useOrganizationList } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ import { toast } from "sonner";
 
 const OrganizationForm = () => {
   const router = useRouter();
-  //   const clerk = useClerk();
+  const clerk = useClerk();
   const { createOrganization } = useOrganizationList();
   const [isPending, startTransition] = useTransition();
 
@@ -36,7 +36,7 @@ const OrganizationForm = () => {
           if (!org) return;
           await createAccount({ id: org.id });
           await completeOnboarding();
-          //   await clerk.session?.touch();
+          await clerk.session?.touch();
           router.push("/dashboard");
         } catch (error) {
           const e = error as { message?: string };
@@ -46,7 +46,7 @@ const OrganizationForm = () => {
         }
       });
     },
-    [createOrganization, router]
+    [createOrganization, router, clerk.session]
   );
 
   const form = useForm<CreateOrganizationParams>({
