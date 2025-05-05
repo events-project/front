@@ -1,5 +1,5 @@
 export * from './reveal-api-key'
-export * from './get-secret-Id'
+export * from './get-secret'
 export * from './create-account'
 export * from './get-account-id'
 export * from './payment-list'

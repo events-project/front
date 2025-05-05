@@ -3,45 +3,55 @@
 import {useAuth} from "@clerk/nextjs";
 import { useState } from "react";
 import { Eye, EyeOff, Copy, KeyRound, Shield, XCircle } from "lucide-react";
-import { revealApiKey, getSecretId } from "@/actions";
+import { revealApiKey, getSecret } from "@/actions";
+import { useTransition, useCallback } from "react";
+import { toast } from "sonner";
 
 export const RevealKeyPanel = () => {
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
 
   const { orgId } = useAuth();
 
-  const handleReveal = async () => {
-    if (!orgId) return setError("No organization ID found");
-
-    try {
-      setLoading(true);
-      const result = await getSecretId({ appId: orgId });
-      const key = await revealApiKey({
-        accountId: orgId,
-        secretId: result.secretId,
-      });
-
-      setApiKey(key);
-      setVisible(true);
-      setError("");
-    } catch {
-      setError("Failed to reveal API key");
-    } finally {
-      setLoading(false);
+  const handleReveal = useCallback(() => {
+    if (!orgId) {
+      toast.error("No organization ID found");
+      return;
     }
-  };
 
-  const handleToggle = async () => {
+    startTransition(async () => {
+      try {
+        const { secretId } = await getSecret({ appId: orgId });
+        const key = await revealApiKey({ accountId: orgId, secretId });
+
+        if (key) {
+          setApiKey(key);
+          setVisible(true);
+        } else {
+          setApiKey(null);
+          setVisible(false);
+          toast.error("API key is empty");
+        }
+      } catch (err) {
+        toast.error("Failed to reveal API key");
+      }
+    });
+  }, [orgId]);
+
+
+  const handleToggle = useCallback(async () => {
     if (!apiKey) {
       await handleReveal();
     } else {
       setVisible((v) => !v);
     }
-  };
+  }, [apiKey, handleReveal]);
+
 
   const handleCopy = async () => {
     if (apiKey) {
@@ -51,7 +61,7 @@ export const RevealKeyPanel = () => {
     }
   };
 
-  const masked = (text: string) => "•".repeat(text.length);
+  const masked = useCallback((text: string) => "•".repeat(text.length), []);
 
   return (
       <div className="w-full max-w-2xl mx-auto bg-zinc-900/90 rounded-2xl border border-white/10 shadow-2xl p-6 backdrop-blur-xl">
