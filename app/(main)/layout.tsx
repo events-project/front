@@ -1,5 +1,5 @@
 import SideBar from "@/components/side-bar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import {SidebarProvider} from "@/components/ui/sidebar";
 import MainClientProvider from "@/providers/main-client";
 import TopBar from "@/components/top-bar";
 
