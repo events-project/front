@@ -1,86 +1,137 @@
 "use client";
 
-import { memo, useState } from "react";
+import {useAuth} from "@clerk/nextjs";
+import { useState } from "react";
+import { Eye, EyeOff, Copy, KeyRound, Shield, XCircle } from "lucide-react";
+import { revealApiKey, getSecret } from "@/actions";
+import { useTransition, useCallback } from "react";
+import { toast } from "sonner";
 
-const RevalKey = () => {
-  const [accountId, setAccountId] = useState("");
-  const [secretId, setSecretId] = useState("");
-  const [apiKey, setApiKey] = useState("");
+export const RevealKeyPanel = () => {
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setApiKey("");
 
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/account/reveal-api-key`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accountId, secretId }),
+  const { orgId } = useAuth();
+
+  const handleReveal = useCallback(() => {
+    if (!orgId) {
+      toast.error("No organization ID found");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const { secretId } = await getSecret({ appId: orgId });
+        const key = await revealApiKey({ accountId: orgId, secretId });
+
+        if (key) {
+          setApiKey(key);
+          setVisible(true);
+        } else {
+          setApiKey(null);
+          setVisible(false);
+          toast.error("API key is empty");
         }
-      );
-
-      const data = await res.json();
-      if (res.ok) {
-        setApiKey(data.apiKey);
-      } else {
-        setError(data.error || "Something went wrong");
+      } catch (err) {
+        toast.error("Failed to reveal API key");
       }
-    } catch (err) {
-      console.log(err);
-      setError("Network error");
+    });
+  }, [orgId]);
+
+
+  const handleToggle = useCallback(async () => {
+    if (!apiKey) {
+      await handleReveal();
+    } else {
+      setVisible((v) => !v);
+    }
+  }, [apiKey, handleReveal]);
+
+
+  const handleCopy = async () => {
+    if (apiKey) {
+      await navigator.clipboard.writeText(apiKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
+  const masked = useCallback((text: string) => "•".repeat(text.length), []);
+
   return (
-    <main className="min-h-screen flex items-center justify-center text-zinc-800 p-6">
-      <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-md border border-zinc-200">
-        <h1 className="text-2xl font-bold text-center mb-6">
-          🔐 Reveal API Key
-        </h1>
+      <div className="w-full max-w-2xl mx-auto bg-zinc-900/90 rounded-2xl border border-white/10 shadow-2xl p-6 backdrop-blur-xl">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <KeyRound className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-xl font-semibold text-white">API Key</h2>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Account ID"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            className="w-full p-3 border border-zinc-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Secret ID"
-            value={secretId}
-            onChange={(e) => setSecretId(e.target.value)}
-            className="w-full p-3 border border-zinc-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+        {/* Key Actions */}
+        <div className="flex items-center gap-4 mb-6">
           <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition"
+              onClick={handleToggle}
+              className="p-2 hover:bg-white/5 rounded-lg transition-colors duration-200"
+              title={visible ? "Hide API Key" : "Show API Key"}
+              disabled={loading}
           >
-            Reveal API Key
+            {loading ? (
+                <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+            ) : visible ? (
+                <EyeOff className="w-5 h-5 text-zinc-400 hover:text-white" />
+            ) : (
+                <Eye className="w-5 h-5 text-zinc-400 hover:text-white" />
+            )}
           </button>
-        </form>
 
-        {apiKey && (
-          <div className="mt-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-md font-mono break-all">
-            ✅ API Key: {apiKey}
+          <button
+              onClick={handleCopy}
+              disabled={!apiKey}
+              className={`p-2 hover:bg-white/5 rounded-lg transition-colors duration-200 ${
+                  !apiKey ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              title="Copy to Clipboard"
+          >
+            <Copy
+                className={`w-5 h-5 ${
+                    copied ? "text-green-400" : "text-zinc-400 hover:text-white"
+                }`}
+            />
+          </button>
+
+          {copied && (
+              <span className="text-xs text-green-400 animate-fade-in">
+            Copied!
+          </span>
+          )}
+        </div>
+
+        {/* API Key Display */}
+        <div className="bg-black/30 rounded-lg p-4 font-mono text-sm border border-white/5">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-indigo-400" />
+            <span className="text-zinc-400">API_KEY=</span>
+            <span className="text-white">
+            {apiKey
+                ? visible
+                    ? apiKey
+                    : masked(apiKey)
+                : masked("sk_test_XXXXXXXXXXXXXXXXXXXX")}
+          </span>
           </div>
-        )}
+        </div>
 
+        {/* Error */}
         {error && (
-          <div className="mt-6 p-4 bg-red-100 border border-red-300 text-red-800 rounded-md">
-            ❌ {error}
-          </div>
+            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex items-center gap-2">
+              <XCircle className="w-4 h-4" />
+              {error}
+            </div>
         )}
       </div>
-    </main>
   );
 };
-
-export default memo(RevalKey);

@@ -29,7 +29,7 @@ const PaymentForm = () => {
       const { error } = await stripe.confirmSetup({
         elements,
         confirmParams: {
-          return_url: "http://localhost:3000/settings",
+          return_url: "http://localhost:3001/payments",
           payment_method_data: {
             billing_details: {
               name: cardholderName,
@@ -53,7 +53,7 @@ const PaymentForm = () => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white-700 mb-1">
               Cardholder Name
             </label>
             <input
@@ -67,7 +67,7 @@ const PaymentForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white-700 mb-1">
               Card Details
             </label>
             <div className="rounded-md border border-gray-300 p-3 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
