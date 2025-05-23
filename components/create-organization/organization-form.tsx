@@ -34,7 +34,11 @@ const OrganizationForm = () => {
             slug: values.slug || undefined,
           });
           if (!org) return;
-          await createAccount({ id: org.id });
+          await createAccount({
+            id: org.id,
+            name: org.name,
+            slug: org.slug || undefined,
+          });
           await completeOnboarding();
           await clerk.session?.touch();
           router.push("/dashboard");
