@@ -38,11 +38,11 @@ const RevealKeyPanel = () => {
     });
   }, [orgId, apiKey]);
 
-  const handleCopy = useCallback(() => {
-    if (!apiKey) return;
-    navigator?.clipboard?.writeText(apiKey);
+  const copyToClipboard = (text?: string | null) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
     toast.success("API key copied to clipboard", { id: "copy_api_key" });
-  }, [apiKey]);
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-zinc-900/90 rounded-2xl border border-white/10 shadow-2xl p-6 backdrop-blur-xl">
@@ -70,7 +70,7 @@ const RevealKeyPanel = () => {
         </button>
 
         <button
-          onClick={handleCopy}
+          onClick={() => copyToClipboard(apiKey)}
           disabled={!apiKey}
           className={cn(
             "p-2 hover:bg-white/5 rounded-lg transition-colors duration-200 cursor-pointer",
