@@ -38,9 +38,9 @@ const RevealKeyPanel = () => {
     });
   }, [orgId, apiKey]);
 
-  const handleCopy = useCallback(async () => {
+  const handleCopy = useCallback(() => {
     if (!apiKey) return;
-    await navigator.clipboard.writeText(apiKey);
+    navigator?.clipboard?.writeText(apiKey);
     toast.success("API key copied to clipboard", { id: "copy_api_key" });
   }, [apiKey]);
 
